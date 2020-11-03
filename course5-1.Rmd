@@ -1,0 +1,88 @@
+Activity Monitering 
+=================================================================================
+by Pasindu Ranasinghe    
+03/11/2020
+
+
+Importing data and required libraries
+
+```{r Libraries & Loading data}
+library(xtable)
+library(lubridate)
+data=read.csv("activity.csv")
+head(data)
+data$date=ymd(data$date)
+```
+
+```{r}
+mean(is.na(data$steps))
+newdata=data[!is.na(data$steps),]
+head(newdata)
+```
+
+```{r}
+steps=tapply(newdata$steps,newdata$date,sum)
+stepsT = as.data.frame.table(steps)
+names(stepsT) = c("date","steps")
+```
+
+
+```{r}
+hist(stepsT$steps,main="Steps by each day",xlab="steps")
+barplot(stepsT$steps,names.arg = stepsT$date,main="Steps by each day",xlab="date",ylab="steps")
+```
+```{r}
+stepsMean =tapply(data$steps,data$date, mean,na.rm = TRUE)
+stepsMean = as.data.frame.table(stepsMean)
+names(stepsMean) = c("date","Mean")
+```
+
+
+```{r}
+stepsMedian=tapply(data$steps,data$date,median,na.rm = TRUE)
+stepsMedian = as.data.frame.table(stepsMedian)
+names(stepsMedian) = c("date","Median")
+merge(stepsMean,stepsMedian, by="date")
+```
+```{r}
+plot(ts(stepsMean$Mean),lwd=2,ylab="average steps count",main="Time vs Steps Graph")
+```
+
+```{r}
+maxavg=which.max(stepsMean$Mean)
+stepsMean[maxavg,]
+```
+
+Imputing data
+Assigning missing data to mean value of the steps
+
+```{r}
+data1=data
+data1[is.na(data1$steps),1]=mean(data1$steps,na.rm=TRUE)
+stepImp=tapply(data1$steps,data1$date,sum)
+stepImp = as.data.frame.table(stepImp)
+names(stepImp) = c("date","steps")
+hist(stepImp$steps,main="Steps by each day",xlab="steps")
+barplot(stepImp$steps,names.arg = stepImp$date,main="Steps by each day",xlab="date",ylab="steps")
+```
+```{r}
+data1$day=wday(data1$date)
+Wend=subset(data1,day==c(7,1))
+week=subset(data1,day !=c(7,1))
+```
+
+
+```{r}
+s1=tapply(Wend$steps,Wend$date,mean)
+s1 = as.data.frame.table(s1)
+names(s1) = c("date","Mean")
+
+s2=tapply(week$steps,week$date,mean)
+s2= as.data.frame.table(s2)
+names(s2) = c("date","Mean")
+
+par(mfrow=c(1,2))
+plot(ts(s1$Mean),lwd=2,ylab="average steps count",main="Average Steps-Weekends")
+plot(ts(s2$Mean),lwd=2,ylab="average steps count",main="Time vs Steps-Weekdays")
+```
+
